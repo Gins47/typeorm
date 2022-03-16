@@ -1,12 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ContactInfo } from './contact-info.entity';
+import Employee from './employee.entity';
+import { Meetings } from './meetings.entity';
+import { Task } from './tasks.entity';
 import { User } from './user.entity';
 
 @Injectable()
 export class AppService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(Employee)
+    private employeeRepository: Repository<Employee>,
+    @InjectRepository(Meetings)
+    private meetingsRepository: Repository<Meetings>,
+    @InjectRepository(Task) private tasksRepository: Repository<Task>,
+    @InjectRepository(ContactInfo)
+    private contactInfoRepository: Repository<ContactInfo>,
   ) {}
 
   getAll(): Promise<User[]> {
