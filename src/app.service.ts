@@ -20,6 +20,82 @@ export class AppService {
     private contactInfoRepository: Repository<ContactInfo>,
   ) {}
 
+  async seed() {
+    // information about the CEO
+    const ceo = this.employeeRepository.create({ name: ' Mr CEO' });
+    await this.employeeRepository.save(ceo);
+    const ceoContactInfo = this.contactInfoRepository.create({
+      email: 'ceo@gmail.com',
+    });
+    ceoContactInfo.employee = ceo;
+    await this.contactInfoRepository.save(ceoContactInfo);
+    // information about the manager
+    const manager = this.employeeRepository.create({ name: 'Gins' });
+    manager.manager = ceo;
+    await this.employeeRepository.save(manager);
+
+    const managerContact = this.contactInfoRepository.create({
+      email: 'gins@gmail.com',
+    });
+    managerContact.employee = manager;
+    await this.contactInfoRepository.save(managerContact);
+
+    // Task1 for the manager
+    const task1 = await this.tasksRepository.create({
+      name: 'meeting with ceo',
+    });
+    task1.employee = manager;
+    await this.tasksRepository.save(task1);
+
+    // task2 for manager
+    const task2 = await this.tasksRepository.create({
+      name: 'presentation to the board',
+    });
+    task2.employee = manager;
+    await this.tasksRepository.save(task2);
+
+    // meeting 1 includes ceo and manager
+    const meeting1 = await this.meetingsRepository.create({
+      url: 'zoom url for meeting1',
+    });
+    meeting1.attendees = [ceo, manager];
+    await this.meetingsRepository.save(meeting1);
+
+    // meeting2 includes the ceo and manager
+
+    const meeting2 = await this.meetingsRepository.create({
+      url: 'teams meeting url for meeting2 ',
+    });
+    meeting2.attendees = [ceo, manager];
+    await this.meetingsRepository.save(meeting2);
+
+    return 'seeding complete';
+  }
+
+  async getEmployeeDataById(id: number) {
+    /* 
+    return this.employeeRepository.findOneOrFail(id, {
+      relations: [
+        'manager',
+        'directReports',
+        'contactInfo',
+        'task',
+        'meetings',
+      ],
+    }); */
+
+    //using build query
+
+    return this.employeeRepository
+      .createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.directReports', 'directReports')
+      .leftJoinAndSelect('employee.task', 'task')
+      .leftJoinAndSelect('employee.manager', 'manager')
+      .leftJoinAndSelect('employee.meetings', 'meetings')
+      .where('employee.id = :employeeId', { employeeId: id })
+      .getOne();
+  }
+
   getAll(): Promise<User[]> {
     return this.usersRepository.find(); // SELECT * from Users;
   }
